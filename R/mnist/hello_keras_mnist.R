@@ -38,11 +38,26 @@ model %>% compile(
   metrics = "accuracy"
 )
 
-history <- model %>% fit(
-  x.train, y.train, epochs=30, batch_size=128,
-  validation_split=0.2
+system.time(
+  history <- model %>% fit(
+    x.train, y.train, epochs=30, batch_size=128,
+    validation_split=0.2
+  )
 )
 
+
+# layers.outputs <- lapply(model$layers[1:5], function(layer) layer$output)
+# 
+# activation.model <- keras_model(inputs = model$input, outputs = layers.outputs)
+# 
+# activations <- activation.model %>% 
+#   predict(x.test)
+# 
+# fl.activation <- activations[[1]]
+# dim(fl.activation)
+# 
+# array_reshape(fl.activation[3,], c(16,16)) %>% 
+#   image(axes=F)
 
 library(caret)
 

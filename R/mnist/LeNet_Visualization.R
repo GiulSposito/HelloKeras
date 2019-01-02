@@ -77,16 +77,15 @@ digit_tensor <- array_reshape(x.train[45,,,], c(1,28,28,1))
 # Returns a list of five arrays: one array per layer activation
 activations <- activation_model %>% predict(digit_tensor)
 
-first_layer_activations <- activations[[3]]
-dim(first_layer_activations)
-
 plot_channel <- function(channel) {
   rotate <- function(x) t(apply(x, 2, rev))
   image(channel[,nrow(channel):1], axes = FALSE, asp = 1)
 }
 
-par(mfrow=c(10,5), mar=c(0.1,0.1,0.1,0.1))
-for(i in 1:50) plot_channel(first_layer_activations[1,,,i])
+layer_inpected <- activations[[3]]
+
+par(mfrow=c(dim(layer_inpected)[4]/5,5), mar=c(0.1,0.1,0.1,0.1))
+for(i in 1:dim(layer_inpected)[4]) plot_channel(layer_inpected[1,,,i])
 
 
 evaluate(model, x.test, y.test)

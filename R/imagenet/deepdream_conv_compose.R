@@ -10,11 +10,17 @@ library(purrr)
 
 # Function Definitions ----------------------------------------------------
 
+preprocess_image_array <- function(array){
+  array %>% 
+    array_reshape(dim = c(1, dim(.))) %>%
+    inception_v3_preprocess_input() %>% 
+    return()
+}
+
 preprocess_image <- function(image_path){
   image_load(image_path) %>%
     image_to_array() %>%
-    array_reshape(dim = c(1, dim(.))) %>%
-    inception_v3_preprocess_input()
+    return()
 }
 
 deprocess_image <- function(x){
@@ -40,15 +46,14 @@ deprocess_image <- function(x){
 # Some interesting parameter groupings we found
 settings <- list(
   features = list(
-    mixed4 = 0.2,
-    mixed5 = 0.5,
-    mixed6 = 2.,
-    mixed7 = 1.5
+    mixed9 = 1
   )
 )
 
 # The settings to be used in this experiment
-image <- preprocess_image("../../Users/gsposito/Downloads/IMG_1842.JPG")
+size <- 500
+image <- array(runif(size * size * 3), dim = c(size, size, 3)) * 20 + 128
+image <- preprocess_image_array(image)
 
 # Model Definition --------------------------------------------------------
 
@@ -115,7 +120,7 @@ gradient_ascent <- function(x, iterations, step, max_loss = NULL) {
 step <- 0.01  # Gradient ascent step size
 num_octave <- 3  # Number of scales at which to run gradient ascent
 octave_scale <- 1.4  # Size ratio between scales
-iterations <- 20  # Number of ascent steps per scale
+iterations <- 40  # Number of ascent steps per scale
 max_loss <- 10
 
 original_shape <- dim(image)[-c(1, 4)]

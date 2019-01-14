@@ -32,6 +32,14 @@ model %>% compile(
 # 3) Convert these into floating-point tensors.
 # 4) Rescale the pixel values (between 0 and 255) to the [0, 1] interval
 
+# data directories
+basedir <- "~gsposito/downloads/dogs-vs-cats"
+sourcedir <- file.path(basedir, "train.data")
+train.dir <- file.path(basedir, "train")
+test.dir <- file.path(basedir, "test")
+valid.dir <- file.path(basedir, "valid")
+
+
 # automatically turn image files on disk into batches of pre-processed tensors.
 datagen <- image_data_generator(rescale = 1/255)
 
@@ -54,7 +62,10 @@ valid_generator <- flow_images_from_directory(
 )
 
 # see how the batch works
-batch <- generator_next(train_generator)
+# Let’s look at the output of one of these generators: it yields batches of 150 × 150
+# RGB images (shape 20,150,150,3) and binary labels (shape 20).
+
+batch <- generator_next(train_generator) # get one training batch 20 images of 150w x 150h x 3colors
 str(batch)
 
 # training the model
@@ -70,7 +81,11 @@ system.time(
   )
 )
 
+# save model and history
 model %>% save_model_hdf5("./models/cats_and_dogs_small_1.h5")
 history %>% saveRDS("./models/cats_and_dogs_small_1_hist.rds")
 
+# check for overvitting (validationd keeps at 70% accuracy from 2 or 3 epocas)
 plot(history)
+
+

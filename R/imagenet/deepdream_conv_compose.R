@@ -41,12 +41,20 @@ deprocess_image <- function(x){
   x
 }
 
+# Build the InceptionV3 network with our placeholder.
+# The model will be loaded with pre-trained ImageNet weights.
+model <- application_inception_v3(weights = "imagenet", include_top = FALSE)
+
 # Parameters --------------------------------------------------------
 
 # Some interesting parameter groupings we found
 settings <- list(
   features = list(
-    mixed9 = 1
+    # conv2d_100 = 0.1,
+    # conv2d_101 = 0.1,
+    # conv2d_103 = 0.1,
+    # conv2d_104 = 0.1
+    conv2d_105 = 0.2
   )
 )
 
@@ -58,10 +66,6 @@ image <- preprocess_image_array(image)
 # Model Definition --------------------------------------------------------
 
 k_set_learning_phase(0)
-
-# Build the InceptionV3 network with our placeholder.
-# The model will be loaded with pre-trained ImageNet weights.
-model <- application_inception_v3(weights = "imagenet", include_top = FALSE)
 
 # This will contain our generated image
 dream <- model$input

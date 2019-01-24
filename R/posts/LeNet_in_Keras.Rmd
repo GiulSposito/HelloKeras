@@ -1,0 +1,164 @@
+---
+title: "LeNet in Keras using R"
+output:
+  html_document:
+    df_print: paged
+---
+
+I'll start series of post about [Keras](https://keras.io/), a high-level [neural networks](https://en.wikipedia.org/wiki/Artificial_neural_network) API developed with a focus on enabling fast experimentation, running on top of [TensorFlow](https://www.tensorflow.org), but using its [R interface](https://keras.rstudio.com/). To start, we'll review our [LeNet implemantation with MXNET](https://yetanotheriteration.netlify.com/2018/01/implementing-lenet-with-mxnet-in-r/) for [MNIST problem](http://yann.lecun.com/exdb/mnist/), a traditional "[Hello World](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program)" in the Neural Network world.
+
+<!--more-->
+
+## About Keras in R
+
+Keras é uma API para construir redes neurais escrita em Python, iremos utilizar uma implementação em R que se comunica através do Reticulate Package com a API, ela fará interface para a implementação do Tensorflow, instalada na máquina.
+
+## Instruction for Setup
+
+Melhores instruções para instalar o ambiente Python/Tensorflow usando GPU (recomendado): https://tensorflow.rstudio.com/tools/local_gpu.html
+
+```{r loadLib, echo=FALSE}
+# loading keras lib
+library(keras)
+```
+
+
+## Databaset and Tensors
+
+O pacote Keras já disponibiliza um conjunto de datasets e redes neurais pre-treinadas para servir de base de aprendizado, o dataset MNIST é um deles, vamos carregá-lo.
+
+```{r loadData, cache=TRUE}
+
+# loading keras lib
+library(keras)
+
+# loading and preparing dataset
+mnist <- dataset_mnist() 
+
+# separate the datasets
+x.train <- mnist$train$x
+lbl.train <- mnist$train$y
+x.test <-  mnist$test$x
+lbl.test <-  mnist$test$y
+
+# let's see what we have
+str(x.train)
+str(lbl.train)
+summary(x.train)
+
+```
+
+
+A primeira vez que vc invoca o `dataset_mnist()` os dados serão baixados, podemos observar que recebemos uma matriz tridimensional, na primeira dimensão temos o índice do "case", e para cada uma delas temos uma matrix de 28 x 28 que corresponde a imagem de um algarismo.
+
+Para utilizar com "tensorflow" é necessário converter a matriz para um "tensor" (generalização de um vetor), neste caso temos que converter para uma matriz de algarismos de 28 x 28 x 1, explicitando o que há apenas "um canal" para cada "pixel" da imagem. Como o canal será o sinal de entrada para os neurônios, é aconselhável normalizá-lo, como o dataset é de inteiros variando de 0 à 255, vamos normalizá-lo para uma faixa de 0.0 à 1.0.
+
+```{r reshapeDataset, cache=TRUE}
+
+# Redefine dimension of train/test inputs to 2D "tensors" (28x28x1)
+x.train <- array_reshape(x.train, c(nrow(x.train), 28,28,1))
+x.test  <- array_reshape(x.test,  c(nrow(x.test),  28,28,1))
+
+# normalize values to be between 0.0 - 1.0
+x.train <- x.train/255
+x.test  <- x.test/255
+
+str(x.train)
+summary(x.train)
+
+```
+
+
+Além disso é necessário converter o "label" de classificação usando [one-hot encoding](https://machinelearningmastery.com/why-one-hot-encode-data-in-machine-learning/), já que esperamos que a rede neural classifique a imagem em uma das dez possibilidades (de 0 à 9).
+
+```{r oneHotEncoding, cache=TRUE}
+
+# one hot encoding
+y.train <- to_categorical(lbl.train,10)
+y.test  <- to_categorical(lbl.test,10)
+
+str(y.train)
+
+```
+
+
+Vamos visualizar algum dos tensores como uma imagem.
+
+```{r viewCases, cache=TRUE}
+
+# plot one case
+show_digit <- function(tensor, col=gray(12:1/12), ...) {
+  tensor %>% 
+    apply(., 2, rev) %>%      # reorient to make a 90 cw rotation
+    t() %>%                   # reorient to make a 90 cw rotation
+    image(col=col, axes=F, asp=1, ...)       # plot matrix as image
+}
+
+# check some data
+par(mfrow=c(1,5), mar=c(0.1,0.1,0.1,0.1))
+for(i in 1:5) show_digit(x.train[i,,,])
+print(lbl.train[1:5])
+
+```
+
+
+## LeNet Archtecture
+
+I’ll use one of the LeNet architecture for the neural network, based in two sets of Convolutional filters and poolings and two fully connected layers, as show bellow
+
+![LetNet](https://www.pyimagesearch.com/wp-content/uploads/2016/06/lenet_architecture.png)
+
+We'll build a sequential model, adding layer by layer in the network.
+
+```{r buildModel, cache=TRUE}
+# build lenet
+keras_model_sequential() %>% 
+  layer_conv_2d(input_shape=c(28,28,1), filters=20, kernel_size = c(5,5), activation = "tanh") %>% 
+  layer_max_pooling_2d(pool_size = c(2,2), strides = c(2,2)) %>% 
+  layer_conv_2d(filters = 50, kernel_size = c(5,5), activation="tanh" ) %>% 
+  layer_max_pooling_2d(pool_size = c(2,2), strides = c(2,2) ) %>% 
+  layer_dropout(rate=0.3) %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 500, activation = "tanh" ) %>% 
+  layer_dropout(rate=0.3) %>% 
+  layer_dense(units=10, activation = "softmax") -> model
+
+# lets look the summary
+summary(model)
+```
+
+In keras you have to define your network and have to compile it, this function defines:
+- Loss function
+- Optimizer/Learning Rate
+- Evalutation Metrics
+
+```{r compileModel, cache=TRUE, eval=FALSE}
+# keras compile
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
+)
+
+```
+
+## Train and Evaluate
+
+Finnaly, your network is ready to train, let's to it with `fit()` function.
+
+```{r trainNetwork, eval=FALSE}
+
+# train the model and store the evolution history
+history <- model %>% fit(
+  x.train, y.train, epochs=1, batch_size=128,
+  validation_split=0.3
+)
+
+# plot the network evolution
+plot(history)
+```
+
+```{r loadNetwork, echo=FALSE}
+print("hello plot history")
+```
+

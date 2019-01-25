@@ -159,7 +159,7 @@ plot(history)
 ```
 
 ```{r loadNetwork, cache=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-model <- load_model_hdf5("./models/mnist_lenet.h5")
+model <- load_model_hdf5("./models/mnist_lenet.hdf5")
 history <- readRDS("./models/mnist_lenet_history.rds")
 plot(history)
 ```
@@ -170,6 +170,44 @@ Let's see how good the fitted model are applying the model in the test set
 
 # evaluating the model
 evaluate(model, x.test, y.test)
+
+```
+
+As you see, it's an impressive 99% of accuracy.
+
+## Visualizing the Activation Layers
+
+```{r activations}
+# Extracts the outputs of the top 8 layers:
+layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
+
+# Creates a model that will return these outputs, given the model input:
+activation_model <- keras_model(inputs = model$input, outputs = layer_outputs)
+
+# choose a case
+digit_tensor <- array_reshape(x.train[45,,,], c(1,28,28,1))
+
+# Returns a list of five arrays: one array per layer activation
+activations <- activation_model %>% predict(digit_tensor)
+
+# plot a tensor channel
+plot_channel <- function(channel) {
+  rotate <- function(x) t(apply(x, 2, rev))
+  image(rotate(channel), axes = FALSE, asp = 1)
+}
+
+# plot the channels of a layout ouput (activation)
+plotActivations <- function(.activations, .index){
+  layer_inpected <- .activations[[.index]]
+  par(mfrow=c(dim(layer_inpected)[4]/5,5), mar=c(0.1,0.1,0.1,0.1))
+  for(i in 1:dim(layer_inpected)[4]) plot_channel(layer_inpected[1,,,i])
+}
+
+# look the 2D layers activations
+plotActivations(activations, 1) # conv2D - tanh
+plotActivations(activations, 2) # max pooling
+plotActivations(activations, 3) # conv2D - tanh
+plotActivations(activations, 4) # max pooling
 
 ```
 

@@ -159,6 +159,6 @@ plot(history)
 ```
 
 ```{r loadNetwork, echo=FALSE}
-print("hello plot history")
+saveRDS(history, "./models/train_history.rds")
 ```
 

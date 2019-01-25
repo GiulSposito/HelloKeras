@@ -57,7 +57,12 @@ x.test  <- array_reshape(x.test,  c(nrow(x.test),  28,28,1))
 
 system.time(
   history <- model %>% fit(
-    x.train, y.train, epochs=3, batch_size=128,
+    x.train, y.train, epochs=30, batch_size=128,
     validation_split=0.2
   )
 )
+
+save_model_hdf5(model, "./models/mnist_lenet.h5")
+saveRDS(history, "./models/mnist_lenet_history.rds")
+
+plot(history)

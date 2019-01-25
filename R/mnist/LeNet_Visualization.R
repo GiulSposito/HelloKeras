@@ -2,39 +2,55 @@
 library(keras)
 library(purrr)
 
-# loading and preparing dataset
-mnist <- dataset_mnist()
+# loading keras lib
+library(keras)
 
+# loading and preparing dataset
+mnist <- dataset_mnist() 
+
+# separate the datasets
 x.train <- mnist$train$x
 lbl.train <- mnist$train$y
 x.test <-  mnist$test$x
 lbl.test <-  mnist$test$y
 
-# redimension of the dataset
-dim(x.train) <- c(nrow(x.train), 784)
-dim(x.test ) <- c(nrow(x.test ), 784)
+# let's see what we have
+str(x.train)
+str(lbl.train)
+summary(x.train)
+
+
+# Redefine dimension of train/test inputs to 2D "tensors" (28x28x1)
+x.train <- array_reshape(x.train, c(nrow(x.train), 28,28,1))
+x.test  <- array_reshape(x.test,  c(nrow(x.test),  28,28,1))
 
 # normalize values to be between 0.0 - 1.0
 x.train <- x.train/255
 x.test  <- x.test/255
 
+str(x.train)
+summary(x.train)
+
+
 # one hot encoding
 y.train <- to_categorical(lbl.train,10)
 y.test  <- to_categorical(lbl.test,10)
 
+str(y.train)
+
+
 # plot one case
-show_digit <- function(arr784, col=gray(12:1/12), ...) {
-  matrix(arr784, nrow=28) %>% # convert to matrix 28 x 28
+show_digit <- function(tensor, col=gray(12:1/12), ...) {
+  tensor %>% 
     apply(., 2, rev) %>%      # reorient to make a 90 cw rotation
     t() %>%                   # reorient to make a 90 cw rotation
     image(col=col, axes=F, asp=1, ...)       # plot matrix as image
 }
 
-
 # check some data
 par(mfrow=c(1,5), mar=c(0.1,0.1,0.1,0.1))
 for(i in 1:5) show_digit(x.train[i,,,])
-lbl.train[1:5]
+print(lbl.train[1:5])
 
 # build lenet
 keras_model_sequential() %>% 
@@ -58,14 +74,10 @@ model %>% compile(
   metrics = c('accuracy')
 )
 
-# Redefine dimension of train/test inputs to 2D "tensors"
-x.train <- array_reshape(x.train, c(nrow(x.train), 28,28,1))
-x.test  <- array_reshape(x.test,  c(nrow(x.test),  28,28,1))
-
 # training
 system.time(
   history <- model %>% fit(
-    x.train, y.train, epochs=1, batch_size=128,
+    x.train, y.train, epochs=30, batch_size=128,
     validation_split=0.3
   )
 )
@@ -74,8 +86,9 @@ system.time(
 evaluate(model, x.test, y.test)
 
 # save/load the model
-save_model_hdf5(model, "./models/mnist_conv_tanh_1epoch.hdf5")
-model <-  load_model_hdf5("./models/mnist_conv_tanh_1epoch.hdf5")
+save_model_hdf5(model, "./models/mnist_lenet.hdf5")
+saveRDS(history, "./models/mnist_lenet_history.rds")
+model <-  load_model_hdf5("./models/mnist_lenet.hdf5")
 
 # --- visualize the activation patterns ---------------------------------------------
 

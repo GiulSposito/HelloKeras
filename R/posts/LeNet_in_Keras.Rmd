@@ -150,7 +150,7 @@ Finnaly, your network is ready to train, let's to it with `fit()` function.
 
 # train the model and store the evolution history
 history <- model %>% fit(
-  x.train, y.train, epochs=1, batch_size=128,
+  x.train, y.train, epochs=30, batch_size=128,
   validation_split=0.3
 )
 
@@ -158,7 +158,18 @@ history <- model %>% fit(
 plot(history)
 ```
 
-```{r loadNetwork, echo=FALSE}
-saveRDS(history, "./models/train_history.rds")
+```{r loadNetwork, cache=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+model <- load_model_hdf5("./models/mnist_lenet.h5")
+history <- readRDS("./models/mnist_lenet_history.rds")
+plot(history)
+```
+
+Let's see how good the fitted model are applying the model in the test set
+
+```{r evalModel, cache=TRUE}
+
+# evaluating the model
+evaluate(model, x.test, y.test)
+
 ```
 

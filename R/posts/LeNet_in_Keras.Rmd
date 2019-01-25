@@ -11,21 +11,23 @@ I'll start series of post about [Keras](https://keras.io/), a high-level [neural
 
 ## About Keras in R
 
-Keras é uma API para construir redes neurais escrita em Python, iremos utilizar uma implementação em R que se comunica através do Reticulate Package com a API, ela fará interface para a implementação do Tensorflow, instalada na máquina.
+[Keras](https://keras.io/) is an API for building neural networks written in [Python](https://www.python.org/) capable of running on top of [Tensorflow](https://www.tensorflow.org), [CNTK](https://github.com/Microsoft/cntk), or [Theano](https://github.com/Theano/Theano). It was developed with a focus on enabling fast experimentation. Being able to go from idea to result with the least possible delay is key to doing good research.
+
+We'll use a [R implementation](https://keras.rstudio.com/) of Keras, that communicates with the Python environment using the [Reticulate Package](https://rstudio.github.io/reticulate/) to build and run neural networks on Tensorflow backend.
+
 
 ## Instruction for Setup
 
-Melhores instruções para instalar o ambiente Python/Tensorflow usando GPU (recomendado): https://tensorflow.rstudio.com/tools/local_gpu.html
+It's necessary install an Python and Tensorflow environments in the machine, also, to make Tensorflow run over [GPUs](https://en.wikipedia.org/wiki/Graphics_processing_unit) you will need install nvidia's [CUDA Toolkit](https://developer.nvidia.com/cuda-zone) and [cuDNN libraries](https://developer.nvidia.com/cudnn) In my experience this is very easy and cheap using a Ubuntu [preemptible](https://cloud.google.com/compute/docs/instances/preemptible) [Google Compute Engine](https://cloud.google.com/) instance. You can follow the install instructions here: https://tensorflow.rstudio.com/tools/local_gpu.html
 
 ```{r loadLib, echo=FALSE}
 # loading keras lib
 library(keras)
 ```
-
-
 ## Databaset and Tensors
 
-O pacote Keras já disponibiliza um conjunto de datasets e redes neurais pre-treinadas para servir de base de aprendizado, o dataset MNIST é um deles, vamos carregá-lo.
+The Keras package already provides a set of datasets and pre-trained neural networksto serve as a learning base, the MNIST dataset is one of them, let's load it.
+
 
 ```{r loadData, cache=TRUE}
 
@@ -49,9 +51,9 @@ summary(x.train)
 ```
 
 
-A primeira vez que vc invoca o `dataset_mnist()` os dados serão baixados, podemos observar que recebemos uma matriz tridimensional, na primeira dimensão temos o índice do "case", e para cada uma delas temos uma matrix de 28 x 28 que corresponde a imagem de um algarismo.
+The first time you invoke `dataset_mnist ()` the data will be downloaded, we can see that we get a three-dimensional array, in the first dimension we have the index of the case, and for each one of them we have a matrix of 28x28 that corresponds the image of a number.
 
-Para utilizar com "tensorflow" é necessário converter a matriz para um "tensor" (generalização de um vetor), neste caso temos que converter para uma matriz de algarismos de 28 x 28 x 1, explicitando o que há apenas "um canal" para cada "pixel" da imagem. Como o canal será o sinal de entrada para os neurônios, é aconselhável normalizá-lo, como o dataset é de inteiros variando de 0 à 255, vamos normalizá-lo para uma faixa de 0.0 à 1.0.
+To use with "tensorflow/keras" it is necessary to convert the matrix to a "tensor" (generalization of a vector), in this case we have to convert to an array of n x 28 x 28 x 1 digits, where "n", in the first dimension is the "case" and the "1" (last dimension) is only "one channel" for each pixel of the image. As the channel will be the input signal to the neurons, it is advisable to normalize it, since the dataset is integers ranging from 0 to 255, we will simple normalize it to a range of 0.0 to 1.0.
 
 ```{r reshapeDataset, cache=TRUE}
 
@@ -69,7 +71,8 @@ summary(x.train)
 ```
 
 
-Além disso é necessário converter o "label" de classificação usando [one-hot encoding](https://machinelearningmastery.com/why-one-hot-encode-data-in-machine-learning/), já que esperamos que a rede neural classifique a imagem em uma das dez possibilidades (de 0 à 9).
+In addition, it is necessary to convert the classification label using [one-hot encoding](https://machinelearningmastery.com/why-one-hot-encode-data-in-machine-learning/), since we neural network classifies the image into one of the ten possibilities (from 0 to 9).
+
 
 ```{r oneHotEncoding, cache=TRUE}
 
@@ -81,8 +84,7 @@ str(y.train)
 
 ```
 
-
-Vamos visualizar algum dos tensores como uma imagem.
+Let's see some numbers in the dataset.
 
 ```{r viewCases, cache=TRUE}
 
@@ -177,7 +179,7 @@ As you see, it's an impressive 99% of accuracy.
 
 ## Visualizing the Activation Layers
 
-As we did in the [mxnet post](), let's see how the internal layers react to a input data visualizing the neuron's activation pattern:
+As we did in the [mxnet post](https://yetanotheriteration.netlify.com/2018/01/implementing-lenet-with-mxnet-in-r/), let's see how the internal layers react to a input data visualizing the neuron's activation pattern:
 
 ```{r activations}
 # Extracts the outputs of the top 8 layers:

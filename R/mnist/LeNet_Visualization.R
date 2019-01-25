@@ -1,9 +1,5 @@
 # load lib
 library(keras)
-library(purrr)
-
-# loading keras lib
-library(keras)
 
 # loading and preparing dataset
 mnist <- dataset_mnist() 

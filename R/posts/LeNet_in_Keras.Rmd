@@ -177,6 +177,8 @@ As you see, it's an impressive 99% of accuracy.
 
 ## Visualizing the Activation Layers
 
+As we did in the [mxnet post](), let's see how the internal layers react to a input data visualizing the neuron's activation pattern:
+
 ```{r activations}
 # Extracts the outputs of the top 8 layers:
 layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
@@ -185,10 +187,10 @@ layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
 activation_model <- keras_model(inputs = model$input, outputs = layer_outputs)
 
 # choose a case
-digit_tensor <- array_reshape(x.train[45,,,], c(1,28,28,1))
+a_digit <- array_reshape(x.train[45,,,], c(1,28,28,1))
 
 # Returns a list of five arrays: one array per layer activation
-activations <- activation_model %>% predict(digit_tensor)
+activations <- activation_model %>% predict(a_digit)
 
 # plot a tensor channel
 plot_channel <- function(channel) {

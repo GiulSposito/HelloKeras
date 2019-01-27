@@ -40,15 +40,15 @@ deprocess_image <- function(x){
 # Some interesting parameter groupings we found
 settings <- list(
   features = list(
-    mixed4 = 0.2,
-    mixed5 = 0.5,
+    mixed4 = 0.5,
+    mixed5 = 1,
     mixed6 = 2.,
     mixed7 = 1.5
   )
 )
 
 # The settings to be used in this experiment
-image <- preprocess_image("../../Users/gsposito/Downloads/IMG_1842.JPG")
+image <- preprocess_image("./images/jushober.jpg")
 
 # Model Definition --------------------------------------------------------
 
@@ -149,8 +149,8 @@ rotate <- function(x) t(apply(x, 2, rev))
 
 as.raster(deprocess_image(image)) %>% 
   as.matrix() %>% 
-  rotate() %>% 
-  rotate() %>% 
+  # rotate() %>% 
+  # rotate() %>% 
   as.raster() %>% 
   plot()
 

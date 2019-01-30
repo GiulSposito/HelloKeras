@@ -69,7 +69,7 @@ for (layer_name in c("block1_conv1", "block2_conv1",
   
   print(glue("layer: {layer_name}"))
   
-  png(paste0("./data/vgg_filters/", layer_name, ".png"),
+  png(paste0("./images/vgg_filters/", layer_name, ".png"),
       width = 8 * size, height = 8 * size)
   
   grobs <- list()
@@ -98,7 +98,7 @@ size <- 150
 generate_pattern("block4_conv1",3*8,140, 10) %>% 
   grid.raster()
 
-the.image <- image_load("../../Users/gsposito/Downloads/IMG_1842.JPG", target_size = c(150,150)) %>% 
+the.image <- image_load("./images/jushober.jpg", target_size = c(150,150)) %>% 
   image_to_array() %>% 
   array(dim=c(1,150,150,3))
 

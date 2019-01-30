@@ -40,15 +40,23 @@ deprocess_image <- function(x){
 # Some interesting parameter groupings we found
 settings <- list(
   features = list(
+    conv2d_105 = 0.2,
+    mixed2 = 0.5,
+    mixed3 = 0.5,
     mixed4 = 0.5,
-    mixed5 = 1,
-    mixed6 = 2.,
-    mixed7 = 1.5
+    mixed5 = 0.5,
+    mixed6 = 0.5,
+    mixed7 = 0.5
   )
 )
 
 # The settings to be used in this experiment
 image <- preprocess_image("./images/jushober.jpg")
+
+noise <- array(runif(dim(image)[2] * dim(image)[3] * 3), dim = c(1, dim(image)[2], dim(image)[3], 3)) * 255
+noise <- inception_v3_preprocess_input(noise)
+
+image <- image + .25*noise
 
 # Model Definition --------------------------------------------------------
 
@@ -115,7 +123,7 @@ gradient_ascent <- function(x, iterations, step, max_loss = NULL) {
 step <- 0.01  # Gradient ascent step size
 num_octave <- 3  # Number of scales at which to run gradient ascent
 octave_scale <- 1.4  # Size ratio between scales
-iterations <- 20  # Number of ascent steps per scale
+iterations <- 50  # Number of ascent steps per scale
 max_loss <- 10
 
 original_shape <- dim(image)[-c(1, 4)]
@@ -154,3 +162,11 @@ as.raster(deprocess_image(image)) %>%
   as.raster() %>% 
   plot()
 
+plotImage <- . %>%
+  deprocess_image() %>% 
+  as.raster() %>% 
+  plot()
+
+# plotImage(noise)
+# dim(noise)
+# plotImage(image + .25*noise)

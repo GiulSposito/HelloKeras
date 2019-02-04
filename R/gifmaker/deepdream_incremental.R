@@ -1,4 +1,5 @@
 library(keras)
+library(glue)
 
 # disable training operations
 k_set_learning_phase(0)
@@ -20,7 +21,7 @@ layer_contributions <- list(
   mixed2 = 0.2,
   mixed3 = 3,
   mixed4 = 2,
-  mixed5 = 1.5
+  conv2d_92 = 1.5
 )
 
 
@@ -40,7 +41,7 @@ for (layer_name in names(layer_contributions)) {
   loss <- loss + (coeff * k_sum(k_square(activation)) / scaling)
 }
 
-
+names(layer_dict)
 
 # This holds our generated image
 dream <- model$input
@@ -64,12 +65,14 @@ eval_loss_and_grads <- function(x) {
 
 
 gradient_ascent <- function(x, iterations, step, max_loss = NULL) {
+  s <- dim(x)[2]
   for (i in 1:iterations) {
     c(loss_value, grad_values) %<-% eval_loss_and_grads(x)
     if (!is.null(max_loss) && loss_value > max_loss)
       break
     cat("...Loss value at", i, ":", loss_value, "\n")
     x <- x + (step * grad_values)
+    if (i %% 2 == 0) save_img(x, fname=glue("./images/dream/img_{s}_{formatC(i, 3, 3, flag = '0')}.jpg"))
   }
   x
 }
@@ -86,7 +89,7 @@ save_img <- function(img, fname){
 
 # Util function to open, resize, and format pictures into appropriate tensors
 preprocess_image <- function(image_path) {
-  image_load(image_path) %>% 
+  image_load(image_path, target_size = c(500,500)) %>% 
     image_to_array() %>% 
     array_reshape(dim = c(1, dim(.))) %>% 
     inception_v3_preprocess_input()
@@ -109,15 +112,15 @@ deprocess_image <- function(img) {
 step <- 0.01          # Gradient ascent step size
 num_octave <- 3       # Number of scales at which to run gradient ascent
 octave_scale <- 1.4   # Size ratio between scales
-iterations <- 20      # Number of ascent steps per scale
+iterations <- 60      # Number of ascent steps per scale
 
 # If our loss gets larger than 10,
 # we will interrupt the gradient ascent process, to avoid ugly artifacts
-max_loss <- 10  
+max_loss <- 50 
 
 # Fill this to the path to the image you want to use
 dir.create("dream")
-base_image_path <- "./images/jushober.jpg"
+base_image_path <- "./images/giul_square.jpg"
 
 # Load the image into an array
 img <- preprocess_image(base_image_path)
@@ -138,9 +141,13 @@ successive_shapes <- rev(successive_shapes)
 original_img <- img 
 shrunk_original_img <- resize_img(img, successive_shapes[[1]])
 
+shape <- successive_shapes[[3]]
+
+
 for (shape in successive_shapes) {
   cat("Processsing image shape", shape, "\n")
   img <- resize_img(img, shape)
+  save_img(img, fname=glue("./images/dream/img_{s}_000.jpg", s=dim(img)[2]))
   img <- gradient_ascent(img,
                          iterations = iterations,
                          step = step,
